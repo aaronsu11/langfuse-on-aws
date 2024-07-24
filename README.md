@@ -16,13 +16,15 @@ This project contains an AWS CDK stack for deploying [Langfuse](https://langfuse
 
 ## Overview
 
-This CDK stack deploys Langfuse on AWS using services such as App Runner, Aurora Serverless v1 PostgreSQL, and Secrets Manager. It provides a scalable and serverless infrastructure for running Langfuse.
+This CDK stack deploys Langfuse on AWS using services such as [App Runner](https://aws.amazon.com/apprunner/), [Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/) PostgreSQL, and Secrets Manager. It provides a scalable and serverless infrastructure for running Langfuse.
 
 ## Prerequisites
 
 - AWS Account and configured AWS CLI with Administrator access
 - Node.js (v18.x or later)
 - AWS CDK CLI (`npm install -g aws-cdk`)
+
+Note: if you are new to CDK, checkout this "[An Introduction to AWS CDK](https://youtu.be/nlb8yo7SZ2I?si=owtTmdh1778Dxcqe)" video and the AWS documentation on [Getting Started with the AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html).
 
 ## Core Components
 
@@ -51,10 +53,9 @@ This CDK stack deploys Langfuse on AWS using services such as App Runner, Aurora
     ```bash
     cdk deploy -c nextAuthUrl=https://<your-app-runner-domain> -c imageTag=latest
     ```
+You can omit the `-c nextAuthUrl=https://<your-app-runner-domain>` parameter for the first deployment, which will default to `http://localhost:3000`. This URL is used for the sign-in and log-out redirects.
 
-You can omit the `-c nextAuthUrl=https://<your-app-runner-domain>` parameter for the first deployment, and get the App Runner URL for future updates after the application is deployed. Check the CDK output and replace `https://<your-app-runner-domain>` with your actual App Runner domain and `latest` with the desired Langfuse image tag. See [Langfuse documentation](https://langfuse.com/docs) for available tags.
-
-4. After deployment, CDK will output important information like the App Runner service URL to access the Langfuse application.
+4. After first deployment, CDK will output important information like the App Runner service URL to access the Langfuse application. Replace `https://<your-app-runner-domain>` with the service URL or the custom domain and re-deploy to complete the setup. You can also replace `imageTag=latest` with the desired Langfuse image tag. See [Langfuse documentation](https://langfuse.com/docs) for available tags.
 
 ## Configuration
 
