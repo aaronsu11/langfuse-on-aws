@@ -1,6 +1,6 @@
 # Langfuse AWS CDK Deployment
 
-This project contains an AWS CDK stack for deploying Langfuse, an open-source observability and analytics platform for LLM applications.
+This project contains an AWS CDK stack for deploying [Langfuse](https://langfuse.com/), an open-source observability and analytics platform for LLM applications with traces, evals, prompt management and metrics.
 
 ## Table of Contents
 
@@ -27,7 +27,7 @@ This CDK stack deploys Langfuse on AWS using services such as App Runner, Aurora
 ## Core Components
 
 1. **VPC**: A Virtual Private Cloud for network isolation.
-2. **Aurora Serverless v1**: PostgreSQL-compatible database for Langfuse.
+2. **Aurora Serverless**: PostgreSQL-compatible database for Langfuse.
 3. **App Runner**: Hosts the Langfuse application.
 4. **ECR**: Stores the Langfuse Docker image.
 5. **Secrets Manager**: Manages sensitive information like database credentials.
