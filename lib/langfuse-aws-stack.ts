@@ -23,7 +23,12 @@ export class LangfuseStack extends Stack {
     // Create a VPC for RDS and App Runner
     const vpc = new ec2.Vpc(this, "LangfuseVPC", {
       maxAzs: 2,
-      natGateways: 1,
+      subnetConfiguration: [
+        {
+          name: "Private",
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED, // disable NAT gateways
+        }
+      ],
     });
 
     // Create Aurora Serverless v1 PostgreSQL cluster
@@ -34,17 +39,17 @@ export class LangfuseStack extends Stack {
       }),
       vpc,
       vpcSubnets: vpc.selectSubnets({
-        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
       }),
       // Scale to and from zero with auto pause/resume
       // See https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v1.how-it-works.html#aurora-serverless.how-it-works.pause-resume
       scaling: {
-        autoPause: cdk.Duration.minutes(30), // Auto pause after 15 minutes of inactivity
+        autoPause: cdk.Duration.minutes(15), // Auto pause after 15 minutes of inactivity
         minCapacity: rds.AuroraCapacityUnit.ACU_2,
         maxCapacity: rds.AuroraCapacityUnit.ACU_4, // Allow scaling up to 4 ACUs
       },
       enableDataApi: true, // Enable Data API for easier querying
-      deletionProtection: true, // Set to true in production
+      deletionProtection: false, // Set to true in production
       credentials: rds.Credentials.fromGeneratedSecret("langfusedbadmin", {
         secretName: "LANGFUSE_DB_CREDENTIALS",
       }),
@@ -53,6 +58,7 @@ export class LangfuseStack extends Stack {
 
     const dbSecret = cluster.secret!;
 
+    // For SSO with Cognito:
     // Create a Cognito User Pool
     // const userPool = new cognito.UserPool(this, "UserPool", {
     //   userPoolName: "LangfuseUserPool",
@@ -145,7 +151,7 @@ export class LangfuseStack extends Stack {
       {
         vpc,
         vpcSubnets: vpc.selectSubnets({
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
         }),
         securityGroups: [appRunnerSecurityGroup],
       }
@@ -167,7 +173,7 @@ export class LangfuseStack extends Stack {
             LANGFUSE_CSP_ENFORCE_HTTPS: "false",
             LANGFUSE_DEFAULT_PROJECT_ROLE: "MEMBER",
             ENABLE_EVENT_LOG: "true", // Set to false in production
-            LANGFUSE_AUTO_POSTGRES_MIGRATION_DISABLED: "true", // Set to true in production
+            LANGFUSE_AUTO_POSTGRES_MIGRATION_DISABLED: "false", // Set to true in production
           },
           environmentSecrets: {
             // DIRECT_URL: apprunner.Secret.fromSecretsManager(

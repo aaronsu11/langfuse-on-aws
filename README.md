@@ -16,7 +16,7 @@ This project contains an AWS CDK stack for deploying [Langfuse](https://langfuse
 
 ## Overview
 
-This CDK stack deploys Langfuse on AWS using services such as [App Runner](https://aws.amazon.com/apprunner/), [Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/) PostgreSQL, and Secrets Manager. It provides a scalable and serverless infrastructure for running Langfuse.
+This CDK stack deploys Langfuse on AWS using services such as [AWS App Runner](https://aws.amazon.com/apprunner/), [Aurora Serverless](https://aws.amazon.com/rds/aurora/serverless/) PostgreSQL, and Secrets Manager. It provides a scalable and serverless infrastructure for running Langfuse.
 
 ## Prerequisites
 
@@ -42,7 +42,8 @@ Note: if you are new to CDK, checkout this "[An Introduction to AWS CDK](https:/
     git clone https://github.com/aaronsu11/langfuse-on-aws.git
     cd langfuse-on-aws
     ```
-2. Install dependencies:
+
+2. Install CDK dependencies:
 
     ```bash
     npm install
@@ -51,25 +52,54 @@ Note: if you are new to CDK, checkout this "[An Introduction to AWS CDK](https:/
 3. Deploy the stack:
     
     ```bash
-    cdk deploy -c nextAuthUrl=https://<your-app-runner-domain> -c imageTag=latest
+    cdk deploy
     ```
-You can omit the `-c nextAuthUrl=https://<your-app-runner-domain>` parameter for the first deployment, which will default to `http://localhost:3000`. This URL is used for the sign-in and log-out redirects.
 
-4. After first deployment, CDK will output important information like the App Runner service URL to access the Langfuse application. Replace `https://<your-app-runner-domain>` with the service URL or the custom domain and re-deploy to complete the setup. You can also replace `imageTag=latest` with the desired Langfuse image tag. See [Langfuse documentation](https://langfuse.com/docs) for available tags.
+    Note that by default, the `nextAuthUrl` which will be set to `http://localhost:3000`. This URL is used for the sign-in and log-out redirects. You will need to update this in the following step to make the application work correctly.
+
+4. After first deployment, CDK will output important information like the App Runner service URL to access the Langfuse application. For example, in the terminal output you will see:
+
+    ```
+    ...
+    Outputs:
+    LangfuseStack.AppRunnerServiceURL = <app ID>.<region>.awsapprunner.com
+    ...
+    ```
+
+5. Update the `-c nextAuthUrl=https://<AppRunnerServiceURL>` context variable with the App Runner service URL from the output and re-deploy the stack:
+
+    ```bash
+    cdk deploy -c nextAuthUrl=https://<AppRunnerServiceURL> -c imageTag=latest
+    ```
+
+    The `nextAuthUrl` should be effective without restarting the container. You can also replace `imageTag=latest` with the desired Langfuse image tag. A replacement of the container will happen if the image tag is changed. See [Langfuse documentation](https://langfuse.com/docs) for available tags.
+
 
 ## Configuration
 
-The stack can be configured using CDK context variables:
+Instead of pass context (`-c`) during deployment, you can also configure the stack using the `cdk.json` file. For example:
+
+```json
+{
+  "context": {
+    "nextAuthUrl": "https://<AppRunnerServiceURL>",
+    "imageTag": "latest"
+  }
+}
+```
 
 - `nextAuthUrl`: The URL for NextAuth authentication (default: "http://localhost:3000")
 - `imageTag`: The Docker image tag for Langfuse (default: "latest")
 
-You can set these in `cdk.json` or pass them during deployment as shown above.
-
 ## Customization
 
-- **Database Scaling**: Adjust the `autoPause`, `minCapacity` and `maxCapacity` in the `ServerlessCluster` configuration to change database scaling behavior.
-- **App Runner Scaling**: Modify the `AutoScalingConfiguration` to adjust the application's scaling parameters.
+In addition, it's recommended to review these setting in the [langfuse-aws-stack.ts](lib/langfuse-aws-stack.ts) file depending on your requirements:
+* Aurora Serverless database settings
+    - `deletionProtection`: Set to `true` to prevent accidental deletion of the database.
+* App Runner settings
+    - `AutoScalingConfiguration`: Adjust the application's [scaling parameters](https://docs.aws.amazon.com/apprunner/latest/dg/manage-autoscaling.html). You pay for the memory usage of all the provisioned instances. You pay for the CPU usage of only the active subset.
+    - `ENABLE_EVENT_LOG`: Set to `false` to disable logging raw events to the events table in the database. This table is useful for debugging your instance but not required to run the application.
+    - `LANGFUSE_AUTO_POSTGRES_MIGRATION_DISABLED`: Set to `true` to disable automatic database migrations on docker startup.
 
 ## Troubleshooting
 

@@ -17,7 +17,7 @@
     ]
   },
   "context": {
-    "nextAuthUrl": "http://localhost:3000",
+    "nextAuthUrl": "",
     "imageTag": "latest",
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
