@@ -27,33 +27,29 @@ export class LangfuseStack extends Stack {
         {
           name: "Private",
           subnetType: ec2.SubnetType.PRIVATE_ISOLATED, // disable NAT gateways
-        }
+        },
       ],
     });
 
-    // Create Aurora Serverless v1 PostgreSQL cluster
-    const cluster = new rds.ServerlessCluster(this, "AuroraCluster", {
-      clusterIdentifier: "LangfuseDBCluster",
+    // Create Aurora Serverless v2 PostgreSQL cluster
+    const cluster = new rds.DatabaseCluster(this, "DBCluster", {
+      clusterIdentifier: "langfusedbcluster",
       engine: rds.DatabaseClusterEngine.auroraPostgres({
-        version: rds.AuroraPostgresEngineVersion.VER_13_12,
+        version: rds.AuroraPostgresEngineVersion.VER_16_2,
       }),
-      vpc,
-      vpcSubnets: vpc.selectSubnets({
+      vpc: vpc,
+      vpcSubnets: {
         subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
-      }),
-      // Scale to and from zero with auto pause/resume
-      // See https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v1.how-it-works.html#aurora-serverless.how-it-works.pause-resume
-      scaling: {
-        autoPause: cdk.Duration.minutes(15), // Auto pause after 15 minutes of inactivity
-        minCapacity: rds.AuroraCapacityUnit.ACU_2,
-        maxCapacity: rds.AuroraCapacityUnit.ACU_4, // Allow scaling up to 4 ACUs
       },
-      enableDataApi: true, // Enable Data API for easier querying
-      deletionProtection: false, // Set to true in production
+      serverlessV2MinCapacity: 0.5,
+      serverlessV2MaxCapacity: 2,
+      writer: rds.ClusterInstance.serverlessV2("Writer"),
       credentials: rds.Credentials.fromGeneratedSecret("langfusedbadmin", {
         secretName: "LANGFUSE_DB_CREDENTIALS",
       }),
-      defaultDatabaseName: "LangfuseDB",
+      defaultDatabaseName: "langfusedb",
+      deletionProtection: false, // Set to true in production
+      enableDataApi: false, // Optionally enable the Data API to use Query Editor
     });
 
     const dbSecret = cluster.secret!;
@@ -274,6 +270,10 @@ export class LangfuseStack extends Stack {
     });
     new CfnOutput(this, "LangfuseDBClusterEndpoint", {
       value: cluster.clusterEndpoint.hostname,
+    });
+    // Secret ARN
+    new CfnOutput(this, "LangfuseDBSecretArn", {
+      value: dbSecret.secretArn,
     });
   }
 }

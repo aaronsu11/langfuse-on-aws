@@ -77,7 +77,7 @@ Note: if you are new to CDK, checkout this "[An Introduction to AWS CDK](https:/
 
 ## Configuration
 
-Instead of pass context (`-c`) during deployment, you can also configure the stack using the `cdk.json` file. For example:
+Instead of passing context (`-c`) during deployment, you can also configure the stack using the `cdk.json` file. For example:
 
 ```json
 {
@@ -95,7 +95,10 @@ Instead of pass context (`-c`) during deployment, you can also configure the sta
 
 In addition, it's recommended to review these setting in the [langfuse-aws-stack.ts](lib/langfuse-aws-stack.ts) file depending on your requirements:
 * Aurora Serverless database settings
+    - `serverlessV2MinCapacity`: Adjust the minimum capacity of the Aurora Serverless v2 database. The lowest value is 0.5 ACU.
+    - `serverlessV2MaxCapacity`: Adjust the maximum capacity of the Aurora Serverless v2 database.
     - `deletionProtection`: Set to `true` to prevent accidental deletion of the database.
+    - `enableDataApi`: Set to `true` to enable the Query Editor in the AWS Console.
 * App Runner settings
     - `AutoScalingConfiguration`: Adjust the application's [scaling parameters](https://docs.aws.amazon.com/apprunner/latest/dg/manage-autoscaling.html). You pay for the memory usage of all the provisioned instances. You pay for the CPU usage of only the active subset.
     - `ENABLE_EVENT_LOG`: Set to `false` to disable logging raw events to the events table in the database. This table is useful for debugging your instance but not required to run the application.
