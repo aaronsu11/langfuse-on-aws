@@ -48,8 +48,9 @@ export class LangfuseStack extends Stack {
         secretName: "LANGFUSE_DB_CREDENTIALS",
       }),
       defaultDatabaseName: "langfusedb",
+      storageEncrypted: true, // Set to true for encryption at rest
       deletionProtection: false, // Set to true in production
-      enableDataApi: false, // Optionally enable the Data API to use Query Editor
+      enableDataApi: true, // Set to true to enable the Data API and use Query Editor
     });
 
     const dbSecret = cluster.secret!;

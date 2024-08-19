@@ -55,7 +55,7 @@ Note: if you are new to CDK, checkout this "[An Introduction to AWS CDK](https:/
     cdk deploy
     ```
 
-    Note that by default, the `nextAuthUrl` which will be set to `http://localhost:3000`. This URL is used for the sign-in and log-out redirects. You will need to update this in the following step to make the application work correctly.
+    Note that by default, the `nextAuthUrl` will be set to `http://localhost:3000`. This URL is used for the sign-in and log-out redirects. You will need to update this in the next step to make the application work correctly.
 
 4. After first deployment, CDK will output important information like the App Runner service URL to access the Langfuse application. For example, in the terminal output you will see:
 
@@ -65,6 +65,7 @@ Note: if you are new to CDK, checkout this "[An Introduction to AWS CDK](https:/
     LangfuseStack.AppRunnerServiceURL = <app ID>.<region>.awsapprunner.com
     ...
     ```
+    Note down the App Runner service URL for the next step.
 
 5. Update the `-c nextAuthUrl=https://<AppRunnerServiceURL>` context variable with the App Runner service URL from the output and re-deploy the stack:
 
@@ -97,6 +98,7 @@ In addition, it's recommended to review these setting in the [langfuse-aws-stack
 * Aurora Serverless database settings
     - `serverlessV2MinCapacity`: Adjust the minimum capacity of the Aurora Serverless v2 database. The lowest value is 0.5 ACU.
     - `serverlessV2MaxCapacity`: Adjust the maximum capacity of the Aurora Serverless v2 database.
+    - `storageEncrypted`: Set to `true` to encrypt the database cluster storage.
     - `deletionProtection`: Set to `true` to prevent accidental deletion of the database.
     - `enableDataApi`: Set to `true` to enable the Query Editor in the AWS Console.
 * App Runner settings
