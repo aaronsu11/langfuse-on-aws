@@ -18,15 +18,24 @@ export class LangfuseStack extends Stack {
     // Required for successful authentication via OAUTH.
     const nextAuthUrl =
       this.node.tryGetContext("nextAuthUrl") || "http://localhost:3000";
-    const imageTag = this.node.tryGetContext("imageTag") || "latest";
+    const imageTag = this.node.tryGetContext("imageTag") || "2";
+    const natGateways = this.node.tryGetContext("natGateways") || 1;
 
     // Create a VPC for RDS and App Runner
     const vpc = new ec2.Vpc(this, "LangfuseVPC", {
-      maxAzs: 2,
+      natGateways: natGateways,
       subnetConfiguration: [
         {
-          name: "Private",
-          subnetType: ec2.SubnetType.PRIVATE_ISOLATED, // disable NAT gateways
+          name: 'Public',
+          subnetType: ec2.SubnetType.PUBLIC,
+        },
+        {
+          name: "PrivateWithEgress",
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+        {
+          name: "PrivateIsolated",
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
         },
       ],
     });
@@ -110,7 +119,7 @@ export class LangfuseStack extends Stack {
     // Create an ECR repository
     const ecrRepo = new ecr.Repository(this, "LangfuseECRRepo", {
       repositoryName: "langfuse-repo",
-      removalPolicy: cdk.RemovalPolicy.RETAIN, // Use RETAIN in production
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // Use RETAIN in production
     });
 
     // Copy the image from Docker Hub to ECR
@@ -148,7 +157,7 @@ export class LangfuseStack extends Stack {
       {
         vpc,
         vpcSubnets: vpc.selectSubnets({
-          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         }),
         securityGroups: [appRunnerSecurityGroup],
       }
